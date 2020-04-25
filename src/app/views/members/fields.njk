@@ -65,8 +65,6 @@
                 <option value="AB-"{% if member.blood == "AB-" %} selected {% endif %}>AB-</option>
                 <option value="O+"{% if member.blood == "O+" %} selected {% endif %}>O+</option>
                 <option value="O-"{% if member.blood == "O-" %} selected {% endif %}>O-</option>
-
-
             </select>
         </div>            
     </div>
@@ -86,6 +84,20 @@
             value="{{ member.height}}">
         </div>            
     </div>
-    
+
+    <div class="item">
+        <div>Instrutor</div>
+        <div>
+            <select name="instructor">
+                {% for instructor in instructorOptions %}
+                <option value="{{instructor.id}}"{% if member.instructor_id == instructor.id %} selected {% endif %}>{{instructor.name}}</option>
+                
+                {% endfor %}
+            </select>
+        </div>            
+    </div>
 
       <button type="submit">Salvar</button>     
+
+
+   

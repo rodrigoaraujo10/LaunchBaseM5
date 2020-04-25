@@ -1,146 +1,93 @@
-const fs = require('fs')
-const data = require('../data.json')
-const { date } = require('../utils')
+const { age, date } = require('../../lib/utils')
+
+const Member = require('../models/Member')
+
+module.exports = {
+    index(req, res){
+        
+        Member.all(function(members){
+            return res.render("members/index", { members })
+
+        })      
+        
+
+    },
+    create(req, res){
+        
+        Member.instructorsSelectOptions(function(options) {
+            return res.render('members/create', { instructorOptions: options } )
+
+        })
 
 
-//index
-
-exports.index = function(req, res){
-    return res.render("members/index", { members: data.members })
-}
-
-//show
-
-
-exports.create = function(req, res){
-    return res.render('members/create')
-}
-
-// create - post
-exports.post = function(req, res){
+    },
+    post(req, res){
+        const keys = Object.keys(req.body)
     
-    const keys = Object.keys(req.body)
-    
-    for (key of keys) {
-        if (req.body[key] == "") {
-            return res.send('Por favor, preencha todos os campos')
-        } 
-    }
-
-    birth = Date.parse(req.body.birth)
-    
-    let id = 1
-    const lastMember = data.members[ data.members.lenght - 1 ]
-
-    if (lastMember) {
-        id = lastMember.id + 1
-    }
-
-    data.members.push({
-        ...req.body,
-        id,
-        birth,
-    
-    })
-
-
-    fs.writeFile("data.json", JSON.stringify(data, null, 2 ), function(err){
-        if (err) return res.send('Write file error...')
-    
-           
-        return res.redirect(`/members/${id}`) 
-
-    })
-}
-
-exports.show = function(req, res) {
-    //req.params
-    const { id } = req.params
-
-    const foundMember = data.members.find(function(member){
-        return id == member.id
-    })
-
-    if (!foundMember) return res.send("Member not found")
-
-
-    
-    const member = {
-        ...foundMember,
-    birth: date(foundMember.birth).birthDay
-    }
-
-    return res.render('members/show', { member })
-}
-
-//edit
-exports.edit = function(req, res) {
-    
-    const { id } = req.params
-
-    const foundMember = data.members.find(function(member){
-        return id == member.id
-    })
-
-    if (!foundMember) return res.send("Member not found")
-
-    const member = {
-        ...foundMember,
-        birth: date(foundMember.birth).iso
-    }
-
-
-    
-    return res.render('members/edit', { member })
-
-} 
-
-
-// PUT
-
-exports.put = function(req, res){
-    const { id } = req.body
-    let index = 0
-
-    const foundMember = data.members.find(function(member, foundIndex){
-        if ( member.id == id ) {
-            index = foundIndex
-            return true
+        for (key of keys) {
+            if (req.body[key] == "") {
+                return res.send('Por favor, preencha todos os campos')
+            } 
         }
-    })
+        
+        Member.create(req.body, function(member) {
+            return res.redirect(`/members/${member.id}`)
+        })
+           
+        
+    },
+    show(req, res){
+        Member.find(req.params.id, function(member) {
+            if (!member) return res.send("Member not found")
 
-    if (!foundMember) return res.send("Member not found")
+            member.birth = date(member.birth).birthDay
 
+
+
+            return res.render('members/show', { member })
+        })
+
+    },
+
+    edit(req, res){
+    Member.find(req.params.id, function(member) {
+        if (!member) return res.send("Member not found")
+
+        member.birth = date(member.birth).iso
+
+        Member.instructorsSelectOptions(function(options) {
+            return res.render('members/edit', { member, instructorOptions: options } )
+
+        })
+        
+        
+
+        })
+
+
+
+    },
     
-    const member = {
-        ...foundMember,
-        ...req.body,
-        birth: date(req.body.birth),
-        //id: Number(req.body.id),
-    }
+    put(req, res){
+        const keys = Object.keys(req.body)
+    
+        for (key of keys) {
+            if (req.body[key] == "") {
+                return res.send('Por favor, preencha todos os campos')
+            } 
+        }
+        
+        Member.update(req.body, function() {
+            return res.redirect(`/instructors/${req.body.id}`)
+        })
+        
 
-    data.members[index] = member
+    },
+    delete(req, res){
+        Member.delete(req.body.id, function() {
+            return res.redirect(`/members/`)
+        })
 
-    fs.writeFile('data.json', JSON.stringify(data, null, 2), function(err) {
-        if( err ) return res.send("Write Error!")
+    },
 
-        return res.redirect(`/members/${id}`)
-    })
-
-}
-
-exports.delete = function(req, res){
-    const { id } = req.body
-
-    const filteredMembers = data.members.filter(function(member){
-        return member.id != id
-    })
-
-    data.members = filteredMembers
-
-    fs.writeFile("data.json", JSON.stringify(data, null, 2), function(err){
-        if (err) return res.send("Write file error!")
-
-        return res.redirect("/members")
-    })
 }

@@ -1,139 +1,94 @@
-const { age, date } = require('../utils')
+const { age, date } = require('../../lib/utils')
+const Instructor = require('../models/Instructor')
 
+module.exports = {
+    index(req, res){
+        const { filter } = req.query
 
-modu
-//index
-
-exports.index = function(req, res){
-    return res.render("instructors/index", { instructors: data.instructors })
-}
-
-exports.create = function(req, res){
-    return res.render('instructors/create')
-}
-
-exports.post = function(req, res){
+        if (filter) {
+            Instructor.findBy(filter, function(instructors) {
+                return res.render("instructors/index", { instructors, filter })
+                
+            })
+        } else {
+            Instructor.all(function(instructors){
+                return res.render("instructors/index", { instructors })
     
-    const keys = Object.keys(req.body)
-    
-    for (key of keys) {
-        if (req.body[key] == "") {
-            return res.send('Por favor, preencha todos os campos')
-        } 
-    }
-
-    let {birth, genre, services, name, avatar_url } = req.body
-
-
-    birth = Date.parse(req.body.birth)
-    const created_at = Date.now()
-    const id = Number (data.instructors.length + 1)
-
-    data.instructors.push({
-        id,
-        avatar_url,
-        name,
-        birth,
-        genre,
-        services,
-        created_at
-    })
-
-
-    fs.writeFile("data.json", JSON.stringify(data, null, 2 ), function(err){
-        if (err) return res.send('Write file error...')
-    
-           
-        return res.redirect('/instructors') 
-
-    })
-}
-exports.show = function(req, res) {
-    //req.params
-    const { id } = req.params
-
-    const foundInstructor = data.instructors.find(function(instructor){
-        return id == instructor.id
-    })
-
-    if (!foundInstructor) return res.send("Instructor not found")
-
-
-    
-    const instructor = {
-        ...foundInstructor,
-        age: age(foundInstructor.birth),
-        services: foundInstructor.services.split(","),
-        created_at: new Intl.DateTimeFormat("pt-BR").format(foundInstructor.created_at)
-    }
-
-    return res.render('instructors/show', { instructor })
-}
-
-exports.edit = function(req, res) {
-    
-    const { id } = req.params
-
-    const foundInstructor = data.instructors.find(function(instructor){
-        return id == instructor.id
-    })
-
-    if (!foundInstructor) return res.send("Instructor not found")
-
-    const instructor = {
-        ...foundInstructor,
-        birth: date(foundInstructor.birth).iso
-    }
-
-
-    
-    return res.render('instructors/edit', { instructor })
-
-} 
-
-exports.put = function(req, res){
-    const { id } = req.body
-    let index = 0
-
-    const foundInstructor = data.instructors.find(function(instructor, foundIndex){
-        if ( instructor.id == id ) {
-            index = foundIndex
-            return true
+            })      
+            
         }
-    })
+      
 
-    if (!foundInstructor) return res.send("Instructor not found")
-
+    },
     
-    const instructor = {
-        ...foundInstructor,
-        ...req.body,
-        birth: date(req.body.birth),
-        //id: Number(req.body.id),
-    }
+    create(req, res){
+        return res.render('instructors/create')
 
-    data.instructors[index] = instructor
 
-    fs.writeFile('data.json', JSON.stringify(data, null, 2), function(err) {
-        if( err ) return res.send("Write Error!")
+    },
+    post(req, res){
+        const keys = Object.keys(req.body)
+    
+        for (key of keys) {
+            if (req.body[key] == "") {
+                return res.send('Por favor, preencha todos os campos')
+            } 
+        }
+        
+        Instructor.create(req.body, function(instructor) {
+            return res.redirect(`/instructors/${instructor.id}`)
+        })
+           
+        
+    },
+    show(req, res){
+        Instructor.find(req.params.id, function(instructor) {
+            if (!instructor) return res.send("Instructor not found")
 
-        return res.redirect(`/instructors/${id}`)
+            instructor.age = age(instructor.birth)
+            instructor.services = instructor.services.split(",")
+
+            instructor.created_at = date(instructor.created_at).format
+
+
+            return res.render('instructors/show', { instructor })
+        })
+
+    },
+
+    edit(req, res){
+    Instructor.find(req.params.id, function(instructor) {
+        if (!instructor) return res.send("Instructor not found")
+
+        instructor.birth = date(instructor.birth).iso
+        instructor.services = instructor.services.split(',')
+
+        instructor.created_at = date(instructor.created_at).format
+
+        return res.render('instructors/edit', { instructor })
     })
 
-}
+    },
+    put(req, res){
+        const keys = Object.keys(req.body)
+    
+        for (key of keys) {
+            if (req.body[key] == "") {
+                return res.send('Por favor, preencha todos os campos')
+            } 
+        }
+        
+        Instructor.update(req.body, function() {
+            return res.redirect(`/instructors/${req.body.id}`)
+        })
+        
 
-exports.delete = function(req, res){
-    const { id } = req.body
+    },
+    delete(req, res){
+        Instructor.delete(req.body.id, function() {
+            return res.redirect(`/instructors/`)
+        })
 
-    const filteredInstructors = data.instructors.filter(function(instructor){
-        return instructor.id != id
-    })
+    },
 
-    data.instructors = filteredInstructors
-
-    fs.writeFile("data.json", JSON.stringify(data, null, 2), function(err){
-        if (err) return res.send("Write file error!")
-
-        return res.redirect("/instructors")
-    })
 }
