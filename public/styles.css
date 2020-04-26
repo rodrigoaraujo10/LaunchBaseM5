@@ -234,8 +234,9 @@ tbody tr td:first-child span {
     width: 48px;
     height: 48px;
     background-position: center;
-    background-size: cover;<button class="submit"></button>4px black;
+    background-size: cover;
     border: 2px solid white;
+    border-radius: 10px 10px 10px 10px;
 }
 
 tbody tr td:last-child a, .table-container > a {
@@ -288,4 +289,32 @@ tbody tr td:last-child a, .table-container > a {
 
 .table-container .header form button {
     margin: 0;
+}
+
+/* PAGINATION */
+
+.table-container {
+    display: grid;
+    grid-template: 64px 1fr 16px / 1fr;
+}
+.table-container .header {
+    margin: 0;
+    align-self: start;
+}
+
+.table-container .pagination {
+    margin: 0;
+    align-self: end;
+    justify-self: center;
+}
+.pagination a,
+.pagination span {
+    color: var(--primary-color);
+    text-decoration: none;
+    margin-right: 16px;
+}
+
+.pagination a:hover {
+    filter: brightness(0.3);
+    border-bottom: 1px solid var(--primary-color);
 }
